@@ -1,0 +1,19 @@
+{
+  "name": "org.carvr.cue",
+  "version": "0.0.1",
+  "displayName": "CUE",
+  "description": "CARVR Unity Extensions",
+  "unity": "2020.1",
+  "dependencies": {
+  },
+  "keywords": [
+    "carvr",
+    "ar",
+    "vr",
+    "xr"
+  ],
+  "author": {
+    "name": "Carolina AR/VR",
+    "url": "https://carvr.org"
+  }
+}
