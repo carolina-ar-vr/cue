@@ -1,0 +1,50 @@
+name: Test
+
+on: [push, pull_request]
+
+env:
+  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
+jobs:
+  testForSomePlatforms:
+    name: Testing for ${{ matrix.targetPlatform }} on version ${{ matrix.unityVersion }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        projectPath:
+          - 'Cue'
+        unityVersion:
+          - 2020.1.6f1
+        targetPlatform:
+          - Android # Test an Android .apk standalone app.
+          - iOS # Test an iOS player.
+    steps:
+      - name: Pull project
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      
+      - name: Use cached Library directory
+        uses: actions/cache@v1.1.0
+        with:
+          path: ${{ matrix.projectPath }}/Library
+          key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
+          restore-keys: |
+            Library-${{ matrix.projectPath }}-
+            Library-
+      
+      - name: Run tests
+        uses: webbertakken/unity-test-runner@v1.6
+        id: testRunner
+        with:
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          #artifactsPath: /tmp/artifacts/${{ matrix.targetPlatform }} # See https://github.com/webbertakken/unity-test-runner/issues/58 for why this would be needed IFF we were also building from this action.
+          customParameters: '-nographics'
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v1
+        with:
+          name: Test results (all modes)
+          path: ${{ steps.testRunner.outputs.artifactsPath }}
