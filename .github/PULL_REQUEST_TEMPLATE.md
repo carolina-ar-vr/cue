@@ -4,7 +4,7 @@
 
 ## Related Issues
 
-*Replace this paragraph with a list of issues related to this PR from our [issue database](https://github.com/carolina-ar-vr/morehead-paintings/issues). Indicate, which of these issues are resolved or fixed by this PR. Ideally there should be at least one issue listed here (in general).*
+*Replace this paragraph with a list of issues related to this PR from our [issue database](https://github.com/carolina-ar-vr/cue/issues). Indicate, which of these issues are resolved or fixed by this PR. Ideally there should be at least one issue listed here (in general).*
 
 ## Tests
 
@@ -17,6 +17,8 @@ will likely get reverted accidentally sooner or later. PRs must include tests fo
 
 Before you create this PR, confirm that it meets all requirements listed below by checking the relevant checkboxes (`[x]`). This will ensure a smooth and quick review process.
 
+- [ ] I certify the intellectual property in this PR is either licensed under a compatible open-source license and is properly attributed, or I hold the copyright and am transferring those rights to Carolina AR/VR to be licensed under the [MIT License](https://en.wikipedia.org/wiki/MIT_License).
+	- Note: this means no copy/pasting from StackOverflow, using content from the Unity Asset Store, etc.
 - [ ] I updated/added relevant tests, and all tests are passing.
 - [ ] I updated/added relevant documentation.
 - [ ] I am willing to follow-up on review comments in a timely manner.
