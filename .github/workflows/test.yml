@@ -3,7 +3,7 @@ name: Test
 on: [push, pull_request]
 
 env:
-  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+  UNITY_LICENSE: ${{ secrets.PUBLIC_UNITY_LICENSE }}
 
 jobs:
   testForSomePlatforms:
@@ -35,7 +35,7 @@ jobs:
             Library-
       
       - name: Run tests
-        uses: webbertakken/unity-test-runner@v1.6
+        uses: webbertakken/unity-test-runner@v1.7
         id: testRunner
         with:
           projectPath: ${{ matrix.projectPath }}
