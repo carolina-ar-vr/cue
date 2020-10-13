@@ -7,108 +7,161 @@ public class ScavengerHuntLogicManager : MonoBehaviour
 
 
     [SerializeField]
-    private List<GameObject> Treasures;   //Main list of treasure game objects
+    private List<GameObject> TrackedObjects;   //Main list of treasure game objects
 
     [SerializeField]
-    private bool RandomProgression; //Default is false for progression type
+    private bool RandomizeHunt = false; 
 
+    [SerializeField]
+    private bool AllowDuplicates = true; 
 
-    
-
-    private Dictionary<string, GameObject> TreasuretoNameMap; //Store Dict with gameobject and name
+    [SerializeField]
+    private bool RequireHints = false; 
 
     void Start()
     {
-        SetUp();
+        if (RandomizeHunt) ShuffleObjects(TrackedObjects); 
     }
 
 
-    void SetUp()
+    /// <summary>
+    /// Set manager to track objects. If require hints is true then validate and track
+    /// </summary>
+    /// <param name="TrackedObjs"></param>
+    public void SetTrackedObjects(GameObject[] TrackedObjs)
     {
-        //If random Progression then shuffle List
-        if (RandomProgression)
+        if (RequireHints)
         {
-            Treasures = ShuffleList(Treasures); 
+            if (ValidateTrackedObjects(TrackedObjs))
+            {
+                TrackedObjects = new List<GameObject>(TrackedObjs);
+                return;
+            }
+            else
+            {
+                Debug.LogError("Require Hints failed check warning to see which objects need the hint component"); 
+            }
         }
+        TrackedObjects = new List<GameObject>(TrackedObjs);
 
-        TreasuretoNameMap = new Dictionary<string, GameObject>(); 
-        //Map Treasure to Name
-        foreach (GameObject obj in Treasures)
-        {
-            
-            TreasuretoNameMap[obj.name] = obj; 
-        }
+        if (RandomizeHunt) TrackedObjects = ShuffleObjects(TrackedObjects);
     }
 
-    // Update is called once per frame
-    void Update()
+    /// <summary>
+    /// Checks if the Object to be tracked have the hint component attached
+    /// </summary>
+    /// <param name="TrackedObjs">Array of GameObjects to Validate</param>
+    /// <returns> True if all objects have hint component else returns false and throws Warnings</returns>
+    private bool ValidateTrackedObjects(GameObject[] TrackedObjs)
+    {
+        bool ObjectsValidated = true;
+        foreach(GameObject Obj in TrackedObjs)
+        {
+            if (!Obj.GetComponent<TreasureHint>())
+            {
+                Debug.LogWarning(Obj.name + " does not have a TreasureHint Component and RequireHints is set to True");
+                ObjectsValidated = false; 
+            } 
+        }
+        return ObjectsValidated; 
+    }
+    
+
+    /// <summary>
+    /// Get array of hints associated with the Tracked Object
+    /// </summary>
+    /// <param name="TrackedObj"> Game Object to extract hints from</param>
+    /// <returns>string[] of hints if TreasureHint is attached otherwise return Null</returns>
+    public string[] GetObjectHints(GameObject TrackedObj)
     {
         
-    }
-
-    //Shuffle List
-
-   
-    public string[] GetTreasureHints(GameObject treasure)
-    {
-
-        if (treasure.GetComponent<TreasureHint>())
+        if (TrackedObj.GetComponent<TreasureHint>())
         {
-            return treasure.GetComponent<TreasureHint>().GetHints(); 
+            return TrackedObj.GetComponent<TreasureHint>().GetHints();
         }
-
+        else
+        {
+            Debug.LogWarning(TrackedObj.name + " does not have a TreasureHint component attached"); 
+        }
+        
         return null; 
     }
 
-    
-    public List<GameObject> GetTreasureList()
+    /// <summary>
+    /// Get the current list of tracked objects
+    /// </summary>
+    /// <returns>List<GameObject> of Tracked Objects</returns>
+    public List<GameObject> GetCurrentTrackedObjects()
     {
-        return Treasures; 
+        return TrackedObjects; 
     }
 
-
-    public void SetNextTreasure(GameObject treasure)
+    /// <summary>
+    /// Move Object to front of Tracked Objects
+    /// If AllowDuplicates then simply insert Object to front of the List
+    /// </summary>
+    /// <param name="TrackedObj">GameObject to add to TrackedObject</param>
+    public void SetNextTrackedObject(GameObject TrackedObj)
     {
-        Treasures.Insert(0, treasure); 
+        if (AllowDuplicates)
+        {
+            TrackedObjects.Insert(0, TrackedObj);
+            return; 
+        }
+
+        int index = TrackedObjects.IndexOf(TrackedObj);
+        TrackedObjects.RemoveAt(index);
+        TrackedObjects.Insert(0, TrackedObj); 
     }
 
-
-    public void SetLastTresure(GameObject treasure)
+    /// <summary>
+    /// Move Object to end of Tracked Objects
+    /// If AllowDuplicates then simply insert Object to end of the List
+    /// </summary>
+    /// <param name="TrackedObj"> GameObject to add to Tracked Objects</param>
+    public void SetLastTrackedObject(GameObject TrackedObj)
     {
-        Treasures.Insert(Treasures.Count - 1, treasure); 
+        if (AllowDuplicates)
+        {
+            TrackedObjects.Insert(TrackedObjects.Count - 1, TrackedObj);
+        }
+
+        TrackedObjects.RemoveAt(TrackedObjects.Count - 1);
+        TrackedObjects.Insert(TrackedObjects.Count - 1, TrackedObj);
+
     }
 
-
-    public GameObject GetNextTreasure()
+    /// <summary>
+    /// Check if the next object is the correct one 
+    /// </summary>
+    /// <param name="ObjName"> Name of NectObject to Validate</param>
+    /// <returns> True if names match</returns>
+    public bool ValidateNextObjectByName(string ObjName)
     {
-
-        if(Treasures.Count == 0)return null; 
-        
-        GameObject NextTreasure = Treasures[0]; // Get The topmost treasure 
-        Treasures.RemoveAt(0); //Pop from top of the list
-
-        //TODO MAYBE: Get hint from the next object and set as hint of the curent object
-        return NextTreasure; 
+        if (ObjName.Equals(TrackedObjects[0].name)) return true;
+        return false;  
     }
 
-
-    public void SetTresuresToTrack(GameObject[] TreasureObjs)
+    /// <summary>
+    /// Get the next Object in line and delete from Tracked Objects
+    /// </summary>
+    /// <returns>Next Obcjest in line</returns>
+    public GameObject GetNextObject()
     {
-        Treasures = new List<GameObject>(TreasureObjs); 
-    }
-   
-
-    //TODO: Return Object by name in the list otherwise return null
-    public GameObject GetTreasure(string treasureName)
-    {
-        return null; 
+        if(TrackedObjects.Count == 0) return null; 
+        GameObject Obj = TrackedObjects[0]; // Get The topmost treasure 
+        TrackedObjects.RemoveAt(0); //Pop from top of the list
+        return Obj; 
     }
 
-    
-
-
+    /// <summary>
+    /// Randomly Shuffles List
+    /// </summary>
+    /// <typeparam name="E"></typeparam>
+    /// <param name="inputList"></param>
+    /// <returns>Shuffled List</returns>
     //List Shuffler -> from http://www.vcskicks.com/randomize_array.php
-    private List<E> ShuffleList<E>(List<E> inputList)
+    public List<E> ShuffleObjects<E>(List<E> inputList)
     {
         List<E> randomList = new List<E>();
         int randomIndex = 0;
